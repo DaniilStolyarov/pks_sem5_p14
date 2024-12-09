@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -11,18 +10,6 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
-
-type User struct {
-	gorm.Model
-	ID          uint
-	Email       string `gorm:"unique"`
-	Password    string
-	Name        string
-	PhoneNumber string
-
-	FavouriteItems []FavouriteItem `gorm:"foreignKey:UserID"`
-	CartItems      []CartItem      `gorm:"foreignKey:UserID"`
-}
 
 type Service struct {
 	gorm.Model
@@ -40,7 +27,7 @@ type Service struct {
 type FavouriteItem struct {
 	gorm.Model
 	ID        uint
-	UserID    uint
+	UID       string
 	ServiceID uint
 	Service   Service `gorm:"foreignKey:ServiceID"`
 }
@@ -48,7 +35,7 @@ type FavouriteItem struct {
 type CartItem struct {
 	gorm.Model
 	ID        uint
-	UserID    uint
+	UID       string
 	ServiceID uint
 	Count     uint
 	Service   Service `gorm:"foreignKey:ServiceID"`
@@ -57,7 +44,7 @@ type CartItem struct {
 type Order struct {
 	gorm.Model
 	ID         uint
-	UserID     uint
+	UID        string
 	Total      uint
 	OrderItems []OrderItem `gorm:"foreignKey:OrderID"`
 }
@@ -80,16 +67,17 @@ func connectToDatabase() *gorm.DB {
 }
 
 func initDatabase() {
-	db.Migrator().DropTable(&User{}, &Service{}, &FavouriteItem{}, &CartItem{}, &Order{}, &OrderItem{})
-	err := db.AutoMigrate(&User{}, &Service{}, &FavouriteItem{}, &CartItem{}, &Order{}, &OrderItem{})
+	db.Migrator().DropTable(&Service{}, &FavouriteItem{}, &CartItem{}, &Order{}, &OrderItem{})
+	err := db.AutoMigrate(&Service{}, &FavouriteItem{}, &CartItem{}, &Order{}, &OrderItem{})
 	if err != nil {
 		panic("faled to init database")
 	}
 }
 
 func fillDatabaseWithTestData() {
-	daniilStolyarov := User{ID: 1, Email: "22T0318@gmail.com", Name: "Daniil Stolyarov", Password: "test_password", PhoneNumber: "89876543210"}
-	db.Create(&daniilStolyarov)
+	// user is now in firebase, so this is commented
+	// daniilStolyarov := User{ID: 1, Email: "22T0318@gmail.com", Name: "Daniil Stolyarov", Password: "test_password", PhoneNumber: "89876543210"}
+	// db.Create(&daniilStolyarov)
 
 	services := []Service{
 		{Name: "Боб", Category: "Стрижка и укладка", PriceRubles: 799, ImageHref: "https://i.imgur.com/pLhAUHv.jpeg", Description: "Боб — это классическая и универсальная стрижка, которая подходит для любого типа волос и формы лица. Она может быть выполнена различной длины и формы, от короткого, доходящего до подбородка боба до длинного, доходящего до плеч боба. Боб идеально подходит для тех, кто хочет добавить объем и текстуру своим волосам, а также скрыть недостатки лица и подчеркнуть скулы.", AvailableCount: 5},
@@ -115,32 +103,43 @@ func getAllServices(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(services)
 }
-func getFavourite(writer http.ResponseWriter, request *http.Request) {
+func getFavouriteOfUser(writer http.ResponseWriter, request *http.Request) {
+	requestUID := request.URL.Query().Get("uid")
+	if requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
 	var favouriteItems []FavouriteItem
-	db.Preload("Service").Find(&favouriteItems)
-
+	db.Where(&FavouriteItem{UID: requestUID}).Preload("Service").Find(&favouriteItems)
 	services := []Service{}
 	for _, item := range favouriteItems {
 		services = append(services, item.Service)
 	}
-
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(services)
 }
-func getCart(writer http.ResponseWriter, request *http.Request) {
+func getCartOfUser(writer http.ResponseWriter, request *http.Request) {
+	requestUID := request.URL.Query().Get("uid")
+	if requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
 	CartItems := []CartItem{}
-	db.Preload("Service").Find(&CartItems)
+	db.Where("uid=?", requestUID).Preload("Service").Find(&CartItems)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(CartItems)
 }
-func getUserData(writer http.ResponseWriter, request *http.Request) {
-	userId := request.URL.Query().Get("id")
-	user := User{}
-	db.First(&user, userId)
-	user.Password = ""
-	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(writer).Encode(user)
-}
+
+//	func getUserData(writer http.ResponseWriter, request *http.Request) {
+//		userId := request.URL.Query().Get("id")
+//		user := User{}
+//		db.First(&user, userId)
+//		user.Password = ""
+//		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+//		json.NewEncoder(writer).Encode(user)
+//	}
 func getService(writer http.ResponseWriter, request *http.Request) {
 	serviceId := request.URL.Query().Get("id")
 	service := Service{}
@@ -162,30 +161,47 @@ func addService(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(service)
 }
 
-func addFavourite(writer http.ResponseWriter, request *http.Request) {
+func addFavouriteOfUser(writer http.ResponseWriter, request *http.Request) {
 	serviceId := request.URL.Query().Get("service_id")
+	requestUID := request.URL.Query().Get("uid")
 	serviceId_parsed, _ := strconv.Atoi(serviceId)
-	fmt.Println(serviceId_parsed)
-	favouriteItem := FavouriteItem{ServiceID: uint(serviceId_parsed), UserID: 1, ID: 0}
-	db.Create(&favouriteItem)
+
+	if serviceId_parsed == 0 || requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
+	var similarCount int64
+	db.Model(&FavouriteItem{}).Where(&FavouriteItem{ServiceID: uint(serviceId_parsed), UID: requestUID}).Count(&similarCount)
+	if similarCount != 0 {
+		// there's already cart item
+		writer.WriteHeader(http.StatusConflict)
+		writer.Write([]byte("Ошибка: товар уже есть в Избранном"))
+		return
+	}
+	favouriteItem := FavouriteItem{ServiceID: uint(serviceId_parsed), UID: requestUID, ID: 0}
+	db.Preload("Service").Create(&favouriteItem).First(&favouriteItem)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(favouriteItem)
 }
 
-func addCart(writer http.ResponseWriter, request *http.Request) {
+func addCartOfUser(writer http.ResponseWriter, request *http.Request) {
 	serviceId := request.URL.Query().Get("service_id")
 	serviceId_parsed, _ := strconv.Atoi(serviceId)
-
-	// check if there's no cart item for that service
-	result := db.First(&CartItem{}, "service_id=?", serviceId_parsed)
-	if result.Error == nil {
+	requestUID := request.URL.Query().Get("uid")
+	if serviceId_parsed == 0 || requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
+	// check if there's no cart item for that service and user
+	var similarCount int64
+	db.Model(&CartItem{}).Where(&CartItem{ServiceID: uint(serviceId_parsed), UID: requestUID}).Count(&similarCount)
+	if similarCount != 0 {
 		// there's already cart item
 		writer.WriteHeader(http.StatusConflict)
 		writer.Write([]byte("Ошибка: товар уже есть в корзине"))
 		return
-	}
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-
 	}
 	// check if count is available
 	service := Service{}
@@ -196,8 +212,8 @@ func addCart(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("Ошибка: товар закончился."))
 		return
 	}
-	CartItem := CartItem{ServiceID: uint(serviceId_parsed), UserID: 1, Count: 1}
-	db.Create(&CartItem)
+	CartItem := CartItem{ServiceID: uint(serviceId_parsed), UID: requestUID, Count: 1}
+	db.Preload("Service").Create(&CartItem).First(&CartItem)
 	service.AvailableCount -= 1
 	db.Model(&Service{}).Where("id = ?", serviceId_parsed).Update("available_count", service.AvailableCount)
 
@@ -205,14 +221,24 @@ func addCart(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(CartItem)
 }
 
-func updateCart(writer http.ResponseWriter, request *http.Request) {
+func updateCartOfUser(writer http.ResponseWriter, request *http.Request) {
 	serviceId := request.URL.Query().Get("service_id")
 	serviceId_parsed, _ := strconv.Atoi(serviceId)
+	requestUID := request.URL.Query().Get("uid")
 	count := request.URL.Query().Get("count")
 	count_parsed, _ := strconv.Atoi(count)
-
+	if serviceId_parsed == 0 || count_parsed == 0 || requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
 	cartItem := CartItem{}
-	db.First(&cartItem, "service_id = ?", serviceId_parsed)
+	db.Where("service_id=?", serviceId_parsed).Where("uid=?", requestUID).First(&cartItem)
+	if cartItem.ID == 0 {
+		writer.WriteHeader(http.StatusConflict)
+		writer.Write([]byte("Ошибка: нет элемента корзины для обновления"))
+		return
+	}
 	service := Service{}
 	db.First(&service, "id = ?", serviceId_parsed)
 	if count_parsed-int(cartItem.Count) > service.AvailableCount {
@@ -222,26 +248,26 @@ func updateCart(writer http.ResponseWriter, request *http.Request) {
 	}
 	service.AvailableCount -= (count_parsed - int(cartItem.Count))
 	cartItem.Count = uint(count_parsed)
-	db.Model(&CartItem{}).Where("service_id = ?", serviceId_parsed).Updates(cartItem)
+	db.Model(&CartItem{}).Where("service_id = ?", serviceId_parsed).Where("uid=?", requestUID).Updates(cartItem)
 	db.Model(&Service{}).Where("id = ?", serviceId_parsed).Update("available_count", service.AvailableCount)
 
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(cartItem)
 }
 
-func updateUser(writer http.ResponseWriter, request *http.Request) {
-	user := User{}
-	json.NewDecoder(request.Body).Decode(&user)
-	fmt.Println(user.Name + " " + strconv.Itoa(int(user.ID)) + " " + user.Password + " " + user.Email)
-	result := db.Model(&User{}).Where("id = ?", int(user.ID)).Select("Name", "PhoneNumber", "Email").Updates(user)
+// func updateUser(writer http.ResponseWriter, request *http.Request) {
+// 	user := User{}
+// 	json.NewDecoder(request.Body).Decode(&user)
+// 	fmt.Println(user.Name + " " + strconv.Itoa(int(user.ID)) + " " + user.Password + " " + user.Email)
+// 	result := db.Model(&User{}).Where("id = ?", int(user.ID)).Select("Name", "PhoneNumber", "Email").Updates(user)
 
-	if result.Error != nil {
-		fmt.Println(result.Error)
-	}
+// 	if result.Error != nil {
+// 		fmt.Println(result.Error)
+// 	}
 
-	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
-	json.NewEncoder(writer).Encode(user)
-}
+//		writer.Header().Set("Content-Type", "application/json; charset=utf-8")
+//		json.NewEncoder(writer).Encode(user)
+//	}
 func updateService(writer http.ResponseWriter, request *http.Request) {
 	service := Service{}
 	json.NewDecoder(request.Body).Decode(&service)
@@ -253,26 +279,41 @@ func updateService(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(service)
 }
-func removeCartItem(writer http.ResponseWriter, request *http.Request) {
-	cartItem := CartItem{}
+func removeCartItemOfUser(writer http.ResponseWriter, request *http.Request) {
 	serviceId := request.URL.Query().Get("service_id")
 	serviceId_parsed, _ := strconv.Atoi(serviceId)
-	db.Where("service_id = ?", serviceId_parsed).Unscoped().Delete(&cartItem)
+	requestUID := request.URL.Query().Get("uid")
+	if serviceId_parsed == 0 || requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
+	cartItem := CartItem{}
+	var deletedCount int
+	db.Where("service_id = ?", serviceId_parsed).Where("uid=?", requestUID).First(&cartItem)
+	deletedCount = int(cartItem.Count)
+	db.Where("service_id = ?", serviceId_parsed).Where("uid=?", requestUID).Unscoped().Delete(&cartItem)
 
 	service := Service{}
 	db.First(&service, "id = ?", serviceId_parsed)
-	service.AvailableCount += 1
+	service.AvailableCount += deletedCount // probably a bug. need to be count of deleted service
 	db.Model(&Service{}).Where("id = ?", serviceId_parsed).Updates(service)
 
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(cartItem)
 }
-func removeFavouriteItem(writer http.ResponseWriter, request *http.Request) {
-	favouriteItem := FavouriteItem{}
+func removeFavouriteItemOfUser(writer http.ResponseWriter, request *http.Request) {
+	requestUID := request.URL.Query().Get("uid")
 	serviceId := request.URL.Query().Get("service_id")
 	serviceId_parsed, _ := strconv.Atoi(serviceId)
+	if serviceId_parsed == 0 || requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
+	favouriteItem := FavouriteItem{}
 	fmt.Println(serviceId_parsed)
-	db.Where("service_id = ?", serviceId_parsed).Unscoped().Delete(&favouriteItem)
+	db.Where("service_id = ?", serviceId_parsed).Where("uid=?", requestUID).Unscoped().Delete(&favouriteItem)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(favouriteItem)
 }
@@ -284,20 +325,24 @@ func removeService(writer http.ResponseWriter, request *http.Request) {
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(service)
 }
-func addOrder(writer http.ResponseWriter, request *http.Request) {
-	user_id := request.URL.Query().Get("user_id")
-	user_id_parsed, _ := strconv.Atoi(user_id)
+func addOrderOfUser(writer http.ResponseWriter, request *http.Request) {
+	requestUID := request.URL.Query().Get("uid")
+	if requestUID == "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		writer.Write([]byte("Ошибка: неправильные аргументы запроса"))
+		return
+	}
 	cartItems := []CartItem{}
 	var order_id uint
 	db.Transaction(func(tx *gorm.DB) error {
-		tx.Where("user_id=?", user_id_parsed).Preload("Service").Find(&cartItems)
-		tx.Where("user_id=?", user_id_parsed).Unscoped().Delete(&CartItem{})
+		tx.Where("uid=?", requestUID).Preload("Service").Find(&cartItems)
+		tx.Where("uid=?", requestUID).Unscoped().Delete(&CartItem{})
 		var total uint = 0
 		// calc total
 		for _, cartItem := range cartItems {
 			total += cartItem.Count * cartItem.Service.PriceRubles
 		}
-		order := Order{Total: total, UserID: uint(user_id_parsed)}
+		order := Order{Total: total, UID: requestUID}
 		tx.Create(&order)
 		order_id = order.ID
 		for _, cartItem := range cartItems {
@@ -312,11 +357,10 @@ func addOrder(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(order)
 }
 
-func getOrders(writer http.ResponseWriter, request *http.Request) {
-	user_id := request.URL.Query().Get("user_id")
-	user_id_parsed, _ := strconv.Atoi(user_id)
+func getOrdersOfUser(writer http.ResponseWriter, request *http.Request) {
+	requestUID := request.URL.Query().Get("uid")
 	orders := []Order{}
-	db.Where("user_id=?", user_id_parsed).Preload("OrderItems.Service").Find(&orders)
+	db.Where("uid=?", requestUID).Preload("OrderItems.Service").Find(&orders)
 	writer.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(writer).Encode(orders)
 }
@@ -327,21 +371,21 @@ func main() {
 
 	router := mux.NewRouter()
 	router.HandleFunc("/services", getAllServices).Methods("GET")
-	router.HandleFunc("/user", getUserData).Methods("GET")
-	router.HandleFunc("/favourite", getFavourite).Methods("GET")
-	router.HandleFunc("/cart", getCart).Methods("GET")
+	//router.HandleFunc("/user", getUserData).Methods("GET")
+	router.HandleFunc("/favourite", getFavouriteOfUser).Methods("GET")
+	router.HandleFunc("/cart", getCartOfUser).Methods("GET")
 	router.HandleFunc("/service", addService).Methods("POST")
-	router.HandleFunc("/favourite", addFavourite).Methods("POST")
-	router.HandleFunc("/cart", addCart).Methods("POST")
-	router.HandleFunc("/cart", updateCart).Methods("PUT")
-	router.HandleFunc("/user", updateUser).Methods("PUT")
-	router.HandleFunc("/cart", removeCartItem).Methods("DELETE")
-	router.HandleFunc("/favourite", removeFavouriteItem).Methods("DELETE")
+	router.HandleFunc("/favourite", addFavouriteOfUser).Methods("POST")
+	router.HandleFunc("/cart", addCartOfUser).Methods("POST")
+	router.HandleFunc("/cart", updateCartOfUser).Methods("PUT")
+	//router.HandleFunc("/user", updateUser).Methods("PUT")
+	router.HandleFunc("/cart", removeCartItemOfUser).Methods("DELETE")
+	router.HandleFunc("/favourite", removeFavouriteItemOfUser).Methods("DELETE")
 	router.HandleFunc("/service", removeService).Methods("DELETE")
 	router.HandleFunc("/service", updateService).Methods("PUT")
 	router.HandleFunc("/service", getService).Methods("GET")
-	router.HandleFunc("/order", addOrder).Methods("POST")
-	router.HandleFunc("/orders", getOrders).Methods("GET")
+	router.HandleFunc("/order", addOrderOfUser).Methods("POST")
+	router.HandleFunc("/orders", getOrdersOfUser).Methods("GET")
 
 	fmt.Println("running...")
 	http.ListenAndServe(":8080", router)

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:barbershop/main.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import '/models/account.dart';
@@ -18,6 +19,7 @@ class GlobalData
   Account? account;
   AccountPageState? accountPageState; 
   FavouriteState? favouriteState; 
+  MyAppState? appState;
   CartState? cartState;
   final String serverHost = "192.168.25.41";
   final int serverPort = 8080;

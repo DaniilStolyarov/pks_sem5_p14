@@ -30,4 +30,8 @@ class AuthService {
   User? getCurrentUser()  {
     return _firebaseAuth.currentUser;
   }
+
+  static bool isLoggedIn() {
+    return FirebaseAuth.instance.currentUser != null && FirebaseAuth.instance.currentUser!.displayName != null;
+  }
 }

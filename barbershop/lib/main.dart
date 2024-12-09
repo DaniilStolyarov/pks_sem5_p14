@@ -1,6 +1,9 @@
+import 'package:barbershop/pages/login_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:barbershop/components/auth_gate.dart';
 import '/pages/favourite.dart';
+import 'models/auth_service.dart';
 import 'models/global_data.dart';
 import 'pages/cart.dart';
 import 'pages/catalog.dart';
@@ -13,7 +16,17 @@ void main() async {
   appData.firebaseInitialization = Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-
+  await appData.firebaseInitialization;
+  FirebaseAuth.instance
+  .authStateChanges()
+  .listen((User? user) {
+    if (user == null) {
+      print('User is currently signed out!');
+    } else {
+      print('User is signed in!');
+    }
+    appData.appState?.forceUpdateState();
+  });
   await appData.fetchAllData();
   runApp(const MyApp());
 }
@@ -21,10 +34,10 @@ void main() async {
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
   @override
-  State<MyApp> createState() => _MyAppState();
+  State<MyApp> createState() => MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class MyAppState extends State<MyApp> {
   int selectedIndex = 0;
   List<Widget> pages = [
     const Catalog(),
@@ -32,6 +45,11 @@ class _MyAppState extends State<MyApp> {
     const Cart(),
     AuthGate()
   ];
+  @override void initState() {
+    // TODO: implement initState
+    super.initState();
+    appData.appState = this;
+  }
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -43,8 +61,8 @@ class _MyAppState extends State<MyApp> {
         useMaterial3: true,
       ),
       home: Scaffold(
-        body: pages[selectedIndex],
-        bottomNavigationBar: BottomNavigationBar(
+        body: AuthService.isLoggedIn() ? pages[selectedIndex] : LoginPage(),
+        bottomNavigationBar:AuthService.isLoggedIn() ? BottomNavigationBar(
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(icon: Icon(Icons.cut), label: "Стрижки"),
             BottomNavigationBarItem(
@@ -62,8 +80,16 @@ class _MyAppState extends State<MyApp> {
               selectedIndex = barItemIndex;
             })
           },
-        ),
+        ) : null,
       ),
     );
+  }
+
+  void forceUpdateState(){
+    if (mounted){
+      setState(() {
+      
+    });
+    }
   }
 }

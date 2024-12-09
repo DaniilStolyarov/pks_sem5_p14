@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-          title: const Text("Профиль"),
+          title: const Text("Авторизация"),
         ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 20.0),
