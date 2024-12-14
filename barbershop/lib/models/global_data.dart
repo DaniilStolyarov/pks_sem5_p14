@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:barbershop/main.dart';
+import 'package:barbershop/models/auth_service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:http/http.dart' as http;
 import '/models/account.dart';
@@ -16,12 +18,12 @@ class GlobalData
   List<ShopItem> favouriteItems = [];
   List<CartItem> cartItems = [];
   List<Order> orders = [];
-  Account? account;
+  User? account;
   AccountPageState? accountPageState; 
   FavouriteState? favouriteState; 
   MyAppState? appState;
   CartState? cartState;
-  final String serverHost = "192.168.25.41";
+  final String serverHost = "192.168.60.47";
   final int serverPort = 8080;
   Future<FirebaseApp>? firebaseInitialization;
   Future<void> fetchAllData() async{
@@ -29,19 +31,22 @@ class GlobalData
     List<dynamic> servicesListRaw = jsonDecode(servicesResponse.body);
     shopItems = servicesListRaw.map((rawObject) => ShopItem.fromJson(rawObject)).toList();
 
-    final favouriteItemsResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/favourite"));
+    // only if user is logged in
+    if (!AuthService.isLoggedIn()) return;
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+    final favouriteItemsResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/favourite?uid=${uid}"));
     List<dynamic> favouriteItemsRaw = jsonDecode(favouriteItemsResponse.body);
     favouriteItems = favouriteItemsRaw.map((rawObject) => ShopItem.fromJson(rawObject)).toList();
 
-    final cartItemsResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/cart"));
+    final cartItemsResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/cart?uid=${uid}"));
     List<dynamic> cartItemsRaw = jsonDecode(cartItemsResponse.body);
     cartItems = cartItemsRaw.map((rawObject) => CartItem.fromJson(rawObject)).toList();
 
-    final accountResponse = await http.get(Uri(scheme: "http", host: serverHost, port: serverPort, path: "/user", queryParameters: {"id" : "1"} ));
-    Map<String, dynamic> accountRaw =  jsonDecode(accountResponse.body);
-    account = Account.fromJson(accountRaw);
-
-    final ordersResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/orders?user_id=1"));
+    // final accountResponse = await http.get(Uri(scheme: "http", host: serverHost, port: serverPort, path: "/user", queryParameters: {"id" : "1"} ));
+    // Map<String, dynamic> accountRaw =  jsonDecode(accountResponse.body);
+    account = FirebaseAuth.instance.currentUser;
+    
+    final ordersResponse = await http.get(Uri.parse("http://$serverHost:$serverPort/orders?uid=${uid}"));
     List<dynamic> ordersRaw = jsonDecode(ordersResponse.body);
     orders = ordersRaw.map((rawObject) => Order.fromJson(rawObject)).toList();
     return;

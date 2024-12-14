@@ -76,7 +76,7 @@ class CartState extends State<Cart> {
                                           TextButton(
                                             child: const Text('Удалить'),
                                             onPressed: () async {
-                                              http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": cartItems[index].item.ID.toString()}));
+                                              http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": cartItems[index].item.ID.toString(), "uid" : appData.account!.uid}));
                                               setState(() {
                                                 cartItems.removeAt(
                                                     index); 
@@ -121,7 +121,7 @@ class CartState extends State<Cart> {
                 children: [
                   ElevatedButton(onPressed: () async {
                   if (cartItems.isEmpty) return;
-                  await http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/order", queryParameters: {"user_id": "1"}));
+                  await http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/order", queryParameters: {"uid" : appData.account!.uid}));
                   await appData.fetchAllData();
                   cartItems = appData.cartItems;
                   appData.cartState!.forceUpdateState();
@@ -218,7 +218,7 @@ class CartItemPreviewState extends State<CartItemPreview> {
                               setState(() {
                                 widget.cartItem.Count -= 1;
                               });
-                              http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.cartItem.item.ID.toString(), "count": widget.cartItem.Count.toString()}));
+                              http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.cartItem.item.ID.toString(), "count": widget.cartItem.Count.toString(), "uid" : appData.account!.uid}));
                               appData.cartState!.forceUpdateState();
                             }
                           },
@@ -234,7 +234,7 @@ class CartItemPreviewState extends State<CartItemPreview> {
                             setState(() {
                               widget.cartItem.Count += 1;
                             });
-                            http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.cartItem.item.ID.toString(), "count": widget.cartItem.Count.toString()}));
+                            http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.cartItem.item.ID.toString(), "count": widget.cartItem.Count.toString(), "uid" : appData.account!.uid}));
                             appData.cartState!.forceUpdateState();
                           },
                           icon: const Icon(Icons.add),

@@ -79,7 +79,8 @@ class ItemViewState extends State<ItemView> {
                       if (indexInFavourites == -1)
                       {
                         // добавить, если нет
-                        http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/favourite", queryParameters: {"service_id": widget.shopItem.ID.toString()}));
+                        http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/favourite", 
+                        queryParameters: {"service_id": widget.shopItem.ID.toString(), "uid" : appData.account!.uid}));
                         setState(() {
                           appData.favouriteItems.add(widget.shopItem);
                         });
@@ -87,7 +88,7 @@ class ItemViewState extends State<ItemView> {
                       else
                       {
                         // удалить, если есть
-                        http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/favourite", queryParameters: {"service_id": widget.shopItem.ID.toString()}));
+                        http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/favourite", queryParameters: {"service_id": widget.shopItem.ID.toString(), "uid" : appData.account!.uid}));
                         setState(() {
                           appData.favouriteItems.removeAt(indexInFavourites);
                         });
@@ -121,21 +122,20 @@ class ItemViewState extends State<ItemView> {
                           fontWeight: FontWeight.w600,
                           color: Colors.white)),
                   onPressed: () async {
-                    http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.shopItem.ID.toString()}));
+                    http.post(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.shopItem.ID.toString(), "uid" : appData.account!.uid}));
                     int indexInCart = appData.indexOfCartItem(widget.shopItem);
                       if (indexInCart == -1)
                       {
                         CartItem cartItem = CartItem(-1, widget.shopItem, 1);
                         // добавить, если нет
-                        
-                        setState(() {
+                       setState(() {
                           appData.cartItems.add(cartItem);
                         });
                       }
                       else
                       {
                         // удалить, если есть
-                        http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.shopItem.ID.toString()}));
+                        http.delete(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/cart", queryParameters: {"service_id": widget.shopItem.ID.toString(), "uid" : appData.account!.uid}));
                         setState(() {
                           appData.cartItems.removeAt(indexInCart);
                         });

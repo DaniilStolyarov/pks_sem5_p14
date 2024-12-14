@@ -12,15 +12,10 @@ class AccountPage extends StatefulWidget{
 }
 
 class AccountPageState extends State<AccountPage> {
-  User? user;
-
   @override
   void initState() {
     super.initState();
     appData.accountPageState = this;
-
-    final authService = AuthService();
-    user = authService.getCurrentUser();
   }
   void forceUpdateState()
   {
@@ -39,13 +34,13 @@ class AccountPageState extends State<AccountPage> {
             const SizedBox(height: 100,),
             const Icon(Icons.account_circle, size: 200.0),
             const SizedBox(height: 10,),
-            Text(/*appData.account!.Name*/ user!.displayName as String, style: const TextStyle(
+            Text(/*appData.account!.Name*/ appData.account!.displayName as String, style: const TextStyle(
               fontSize: 22
             ),),
             const SizedBox(height: 10,),
-            Text(/*appData.account!.Email*/ user!.email!),
-            const SizedBox(height: 10,),
-            Text(appData.account!.PhoneNumber),
+            Text(/*appData.account!.Email*/ appData.account!.email!),
+            //const SizedBox(height: 10,),
+            //Text(appData.account!.phoneNumber),
             const SizedBox(height: 20,),
             TextButton(onPressed: (){
               

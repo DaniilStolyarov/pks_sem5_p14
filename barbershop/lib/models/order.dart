@@ -8,9 +8,9 @@ part 'order.g.dart';
 //  dart run build_runner build --delete-conflicting-outputs
 @JsonSerializable()
 class Order {
-  Order(this.ID, this.UserID, this.Total, this.OrderItems, this.CreatedAt);
+  Order(this.ID, this.UID, this.Total, this.OrderItems, this.CreatedAt);
   int ID;
-  int UserID;
+  String UID;
   int Total;
   DateTime CreatedAt;
   List<CartItem> OrderItems;

@@ -38,10 +38,10 @@ class AccountUpdatePage extends StatelessWidget{
             ),
             const SizedBox(height: 20,),
             TextButton(onPressed: () async {
-              appData.account = Account(1, nameController.text, emailController.text, phoneNumberController.text);
-              http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/user"), body: jsonEncode(appData.account!.toJson()), headers: {"Content-Type" : "application/json"});
-              appData.accountPageState!.forceUpdateState();
-              Navigator.pop(context);
+              // appData.account = Account(1, nameController.text, emailController.text, phoneNumberController.text);
+              // http.put(Uri(scheme: "http", host: appData.serverHost, port: appData.serverPort, path: "/user"), body: jsonEncode(appData.account!.toJson()), headers: {"Content-Type" : "application/json"});
+              // appData.accountPageState!.forceUpdateState();
+              // Navigator.pop(context);
             }, child: const Text("Сохранить данные", style: TextStyle(fontSize: 18),),),
           ],
         ),
