@@ -118,4 +118,5 @@ class Message {
 
 ## upd:
 Добавлена иконка приложения
+
 ![{868434E0-B814-4A92-B0B4-591BC0C690EC}](https://github.com/user-attachments/assets/5cde32fa-6a28-4122-8940-9f2bbaa1645e)
