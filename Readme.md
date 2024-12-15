@@ -91,4 +91,22 @@ class Message {
 
 ![{767EDC08-C4D4-4A34-96FC-7AC89E6A4674}](https://github.com/user-attachments/assets/5ce73dc3-8b4a-4d33-b260-3e1b738bddca)
 
+Войдём за admin@admin.com и увидим, что список чатов пуст.
 
+![{A7E0E8CB-E365-4E0D-8896-DA2B01DEEACC}](https://github.com/user-attachments/assets/81ba6357-38d3-497e-b20e-0da3c3ea91c1)
+
+![{72926E07-3D05-481A-A2DB-EA19C3A74DC2}](https://github.com/user-attachments/assets/698a5c92-a008-48ea-bd4b-5a8c408d6155)
+
+Войдём за danya@gmail.com и egor@gmail.com, отправим пару сообщений:
+
+![{49BC5E22-C2DB-477A-99FD-68377E3D761B}](https://github.com/user-attachments/assets/4304c86e-72e5-43b6-b0c1-cdf32f1b850d)
+
+![{BF55C40D-1DC6-4965-B74A-E036A50D7908}](https://github.com/user-attachments/assets/81b34c3e-504e-413f-9329-3e4cbadc03d2)
+
+Вот что увидит admin@gmail.com:
+
+![{56BCF069-44EB-4692-9256-FCF2A2B2A857}](https://github.com/user-attachments/assets/c7e75bcb-021e-4d11-9a6e-3960e0a5369c)
+
+![{1D06E640-7BE1-4E21-9AE0-1847367C96E5}](https://github.com/user-attachments/assets/7f372ec4-7fc3-4ab6-ba93-14d3bf48a9d6)
+
+![{B2436E09-4A96-4940-89BF-EEAACFE90639}](https://github.com/user-attachments/assets/ff185b29-1083-4bdf-bc14-5a939e31cedf)
