@@ -31,6 +31,13 @@
 ### Шаг 3.
 <p>Подключим Firestore Database.</p>
 
+![{06BB38D1-B663-4D11-91D7-75E24B819FC3}](https://github.com/user-attachments/assets/456b368d-e9b3-4b14-8f1f-05893388c83f)
+
+Установим библиотеки: для работы с firestore и для отображения сообщений в пузырях.
+<pre>
+  flutter pub add cloud_firestore
+  flutter pub add flutter_chat_bubble 
+</pre>
 
 ### Шаг 4. 
 
@@ -73,4 +80,7 @@ class Message {
 </p>
 
 ### Шаг 5. Тестирование
-Создадим 3-х пользователей:
+Очистим firestore и создадим 3-х пользователей:
+- admin@admin.com
+- danya@gmail.com
+- egor@gmail.com
