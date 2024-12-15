@@ -28,16 +28,16 @@ void main() async {
     appData.appState?.forceUpdateState();
   });
   await appData.fetchAllData();
-  runApp(const MyApp());
+  runApp( MyApp());
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
   @override
   State<MyApp> createState() => MyAppState();
 }
 
 class MyAppState extends State<MyApp> {
+  Key key = UniqueKey();
   int selectedIndex = 0;
   List<Widget> pages = [
     const Catalog(),
@@ -49,6 +49,9 @@ class MyAppState extends State<MyApp> {
     // TODO: implement initState
     super.initState();
     appData.appState = this;
+  }
+  void restartApp() {
+    key = UniqueKey();
   }
   @override
   Widget build(BuildContext context) {

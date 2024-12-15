@@ -1,3 +1,5 @@
+import 'package:barbershop/pages/chat_list.dart';
+import 'package:barbershop/pages/chat_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:barbershop/models/auth_service.dart';
@@ -19,6 +21,7 @@ class AccountPageState extends State<AccountPage> {
   }
   void forceUpdateState()
   {
+    if (!mounted) return;
     setState(() {
       
     });
@@ -42,14 +45,26 @@ class AccountPageState extends State<AccountPage> {
             //const SizedBox(height: 10,),
             //Text(appData.account!.phoneNumber),
             const SizedBox(height: 20,),
-            TextButton(onPressed: (){
-              
-              Navigator.push(context, MaterialPageRoute(builder: (context) => AccountUpdatePage()));
-            }, child: const Text("Обновить данные", style: TextStyle(fontSize: 18),),),
+
+            // AuthService.isAdmin() ? const Center() :
+            // TextButton(onPressed: (){
+            //   Navigator.push(context, MaterialPageRoute(builder: (context) => AccountUpdatePage()));
+            // }, child: const Text("Обновить данные", style: TextStyle(fontSize: 18),),),
+
+            AuthService.isAdmin() ? const Center() :
              TextButton(onPressed: (){
-              
               Navigator.push(context, MaterialPageRoute(builder: (context) => const OrdersPage()));
             }, child: const Text("Мои заказы", style: TextStyle(fontSize: 18),),),
+
+            AuthService.isAdmin() ? const Center() : 
+            TextButton(onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ChatPage(null)));
+            }, child: const Text("Чат с продавцом", style: TextStyle(fontSize: 18),),),
+            
+            AuthService.isAdmin() ? 
+            TextButton(onPressed: (){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => ChatList()));
+            }, child: const Text("Чат с клиентами", style: TextStyle(fontSize: 18),),) : const Center()
           ],
         ),
       ),
