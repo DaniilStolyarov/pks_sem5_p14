@@ -68,7 +68,7 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Связь с продавцом"),
+        title: Text("Связь с ${widget.selectedCustomerUID == null ? "продавцом" : "клиентом"}"),
       ),
       body: Column(
         children: [

@@ -55,7 +55,7 @@ class _ChatListState extends State<ChatList> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Список чатов"),),
-      body: ListView.builder(
+      body: chatUsers.isEmpty ? Center(child: Text("Нет чатов с клиентами")) : ListView.builder(
         itemCount: chatUsers.length,
         itemBuilder: (context, index) {
           return GestureDetector(
