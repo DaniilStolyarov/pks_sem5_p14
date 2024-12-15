@@ -113,5 +113,5 @@ class Message {
 
 ![{B2436E09-4A96-4940-89BF-EEAACFE90639}](https://github.com/user-attachments/assets/ff185b29-1083-4bdf-bc14-5a939e31cedf)
 
-### .GIF
+## Предпоказ .GIF
 ![Тут должна была быть гифка, но что-то пошло не так](./preview.gif)
