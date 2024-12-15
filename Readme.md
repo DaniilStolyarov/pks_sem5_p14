@@ -84,3 +84,11 @@ class Message {
 - admin@admin.com
 - danya@gmail.com
 - egor@gmail.com
+
+![{E520D512-E36B-4A36-B38F-54E0781B4B74}](https://github.com/user-attachments/assets/8d409830-b596-43ed-8e1e-7715df3f875f)
+
+![{D2F9F341-0CB1-42EF-A755-4780DA5B7D6E}](https://github.com/user-attachments/assets/5014211e-6c69-41b6-8679-4e27fe177be3)
+
+![{767EDC08-C4D4-4A34-96FC-7AC89E6A4674}](https://github.com/user-attachments/assets/5ce73dc3-8b4a-4d33-b260-3e1b738bddca)
+
+
