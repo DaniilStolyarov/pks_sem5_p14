@@ -23,7 +23,7 @@ class GlobalData
   FavouriteState? favouriteState; 
   MyAppState? appState;
   CartState? cartState;
-  final String serverHost = /*"192.168.60.47"*/ "185.251.91.175";
+  final String serverHost = /*"192.168.60.47"*/ "185.251.90.5";
   final int serverPort = 8080;
   Future<FirebaseApp>? firebaseInitialization;
   Future<void> fetchAllData() async{
