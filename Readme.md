@@ -1,3 +1,5 @@
+# Практика 14-15 Столяров ЭФБО-01-22 22T0318
+
 ## Задание
 Добавить чат с продавцом на страницу Профиль.
 
@@ -110,3 +112,11 @@ class Message {
 ![{1D06E640-7BE1-4E21-9AE0-1847367C96E5}](https://github.com/user-attachments/assets/7f372ec4-7fc3-4ab6-ba93-14d3bf48a9d6)
 
 ![{B2436E09-4A96-4940-89BF-EEAACFE90639}](https://github.com/user-attachments/assets/ff185b29-1083-4bdf-bc14-5a939e31cedf)
+
+## Предпоказ .GIF
+![Тут должна была быть гифка, но что-то пошло не так](./preview.gif)
+
+## upd:
+Добавлена иконка приложения
+
+![{868434E0-B814-4A92-B0B4-591BC0C690EC}](https://github.com/user-attachments/assets/5cde32fa-6a28-4122-8940-9f2bbaa1645e)
